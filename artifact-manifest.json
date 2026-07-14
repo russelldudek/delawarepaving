@@ -1,0 +1,13 @@
+{
+  "campaign": "Delaware Valley Companies - Head of AI & Automation",
+  "branch": "main",
+  "routes": ["index.html", "resume.html", "cover-letter.html", "interview-brief.html", "120-day-plan.html", "automation-load-test.html", "sources.html"],
+  "styles": ["styles.css", "brand-tokens.css"],
+  "scripts": ["app.js"],
+  "brand_assets": ["assets/brand/dvp-logo.png", "assets/brand/dvp-truck.jpg"],
+  "other_assets": ["assets/candidate-roadmark.svg"],
+  "documents": ["docs/Russell-Dudek-Delaware-Valley-Resume.pdf", "docs/Russell-Dudek-Delaware-Valley-Cover-Letter.pdf", "docs/Russell-Dudek-Delaware-Valley-Interview-Brief.pdf", "docs/Russell-Dudek-Delaware-Valley-120-Day-Plan.pdf", "docs/Russell-Dudek-Delaware-Valley-Automation-Load-Test.pdf"],
+  "records": ["README.md", "brand-intelligence.md", "sources.md", "campaign-audit.md", "artifact-manifest.json"],
+  "qa_records": ["qa/responsive-audit.json", "qa/screen-document-canvas-audit.json", "qa/link-audit.json", "qa/pdf-audit.json", "qa/candidate-facing-confidentiality-audit.json"],
+  "deployment_state": "build workflow reconstructs the shared stylesheet, acquires official assets, generates audited PDFs, commits the complete manifest, and deploys GitHub Pages"
+}
