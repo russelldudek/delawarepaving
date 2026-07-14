@@ -1,0 +1,42 @@
+[
+  {
+    "file": "docs/Russell-Dudek-Delaware-Valley-Resume.pdf",
+    "pages": 2,
+    "bytes": 45604,
+    "sha256": "b3ad4c19f29cfb10a65b688660f3eee9cf02291eed60b7df6a96a3dbcba0c929",
+    "contains_candidate_name": true,
+    "forbidden_internal_name_matches": false
+  },
+  {
+    "file": "docs/Russell-Dudek-Delaware-Valley-Cover-Letter.pdf",
+    "pages": 1,
+    "bytes": 24787,
+    "sha256": "ce4ad82bf789c7cb22090903fd134520d23981b541a4ad1fa2e2cc4278ec0bf1",
+    "contains_candidate_name": true,
+    "forbidden_internal_name_matches": false
+  },
+  {
+    "file": "docs/Russell-Dudek-Delaware-Valley-Interview-Brief.pdf",
+    "pages": 3,
+    "bytes": 40111,
+    "sha256": "8bc43950529b29481fd3538ea21710b96712105feed5c989078c01b0e8bc86cf",
+    "contains_candidate_name": true,
+    "forbidden_internal_name_matches": false
+  },
+  {
+    "file": "docs/Russell-Dudek-Delaware-Valley-120-Day-Plan.pdf",
+    "pages": 2,
+    "bytes": 32175,
+    "sha256": "f1d2d639d297feb9061ada5c78ca890e65272440ee76e8e3e6323f4ebfde315b",
+    "contains_candidate_name": true,
+    "forbidden_internal_name_matches": false
+  },
+  {
+    "file": "docs/Russell-Dudek-Delaware-Valley-Automation-Load-Test.pdf",
+    "pages": 1,
+    "bytes": 25797,
+    "sha256": "c36c2f861b3013c7a5a0a7fc1a4a3adb144d337cfd1f457f51dde222b0e984a3",
+    "contains_candidate_name": true,
+    "forbidden_internal_name_matches": false
+  }
+]
