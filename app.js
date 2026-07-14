@@ -27,7 +27,8 @@ applyScenario('handoff');
   }
 
   function setPosition(x,bob=0){
-    roller.style.transform=`translate3d(${x}px,${bob}px,0)`;
+    roller.style.setProperty('--approved-roller-x',`${x}px`);
+    roller.style.setProperty('--approved-roller-y',`${bob}px`);
     rearWheel.style.transform=`rotate(${wheelAngle}deg)`;
     frontDrum.style.transform=`rotate(${wheelAngle*.72}deg)`;
   }
