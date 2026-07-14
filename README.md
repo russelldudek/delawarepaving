@@ -9,10 +9,13 @@ Independent candidate campaign by Russell Dudek.
 - `index.html` - candidate vision and interactive Load-Bearing Workflow
 - `resume.html` - exactly two-page role-aligned resume
 - `cover-letter.html` - exactly one-page cover letter
-- `interview-brief.html` - interview thesis brief
-- `120-day-plan.html` - detailed entry plan
-- `automation-load-test.html` - role-specific operating artifact
+- `interview-brief.html` - three-page interview thesis brief
+- `120-day-plan.html` - two-page entry plan
+- `automation-load-test.html` - one-page role-specific operating artifact
 - `sources.html` - public source and assumption record
+
+## Publication
+The GitHub Actions workflow reconstructs the shared stylesheet, acquires the official public brand assets, generates and validates the five PDFs, commits the complete manifest, and deploys GitHub Pages.
 
 ## Brand and authorship
 The official Delaware Valley Paving logo and public equipment image are locally preserved with provenance in `brand-intelligence.md`. This is independent candidate work and is not an official Delaware Valley Companies publication.
