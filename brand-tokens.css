@@ -1,0 +1,23 @@
+/* Delaware Valley Paving candidate campaign brand tokens.
+   Employer colors are source-sampled from the official logo asset.
+   The amber signal color is candidate-original and subordinate. */
+:root {
+  --dvp-red: #ed1c24;
+  --dvp-blue: #00afef;
+  --dvp-white: #ffffff;
+  --asphalt-950: #101318;
+  --asphalt-900: #171b21;
+  --asphalt-800: #252b33;
+  --asphalt-700: #343c46;
+  --aggregate-300: #c9cdd1;
+  --aggregate-150: #e7e9eb;
+  --aggregate-075: #f4f5f6;
+  --signal-amber: #f3a526;
+  --soil-brown: #705646;
+  --base-stone: #77838f;
+  --surface-blue: #067cab;
+  --ink: #17202a;
+  --muted: #5e6974;
+  --paper: #ffffff;
+  --shadow: 0 28px 80px rgba(16, 19, 24, .16);
+}
