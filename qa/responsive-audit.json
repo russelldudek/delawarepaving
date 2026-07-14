@@ -1,0 +1,10 @@
+{
+  "executed_runs": 29,
+  "routes": ["index.html", "resume.html", "cover-letter.html", "interview-brief.html", "120-day-plan.html", "automation-load-test.html", "sources.html"],
+  "viewports": ["1440x900", "1280x800", "768x1024", "390x844"],
+  "horizontal_overflow_failures": 0,
+  "browser_errors": 0,
+  "home_scenario_interaction": "passed",
+  "reduced_motion": {"tested": true, "roller_animation_duration": "1e-06s", "content_and_controls_usable": true},
+  "result": "passed"
+}
