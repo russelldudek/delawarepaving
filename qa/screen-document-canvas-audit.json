@@ -1,0 +1,9 @@
+{
+  "routes": {"resume.html": 2, "cover-letter.html": 1, "interview-brief.html": 3, "120-day-plan.html": 2, "automation-load-test.html": 1},
+  "screen_sheets_expand_or_reflow": true,
+  "fixed_screen_overflow_hidden": false,
+  "content_footer_collisions": 0,
+  "tablet_and_mobile_reflow": "passed",
+  "print_geometry_separately_verified": true,
+  "result": "passed"
+}
