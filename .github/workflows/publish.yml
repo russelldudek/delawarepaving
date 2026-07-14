@@ -1,0 +1,93 @@
+name: Build candidate campaign
+
+on:
+  push:
+    branches: [main]
+  workflow_dispatch:
+
+permissions:
+  contents: write
+  pages: write
+  id-token: write
+
+concurrency:
+  group: candidate-campaign-pages
+  cancel-in-progress: false
+
+jobs:
+  build-and-publish:
+    if: ${{ !contains(github.event.head_commit.message, '[skip campaign build]') }}
+    runs-on: ubuntu-latest
+    environment:
+      name: github-pages
+      url: ${{ steps.deployment.outputs.page_url }}
+    steps:
+      - uses: actions/checkout@v4
+      - name: Assemble source and install document tooling
+        run: |
+          cat .build-payload/styles.part-* > styles.css
+          test "$(wc -c < styles.css)" -eq 25333
+          rm -rf .build-payload
+          sudo apt-get update
+          sudo apt-get install -y ghostscript
+          python -m pip install --upgrade pip
+          python -m pip install weasyprint pypdf
+      - name: Acquire official public brand assets
+        run: |
+          mkdir -p assets/brand docs qa
+          curl --fail --location --retry 3 --output assets/brand/dvp-logo.png 'https://www.delawarevalleypaving.com/wp-content/uploads/2024/02/DVP-Logo-tagline_1.png'
+          curl --fail --location --retry 3 --output assets/brand/dvp-truck.jpg 'https://www.delawarevalleypaving.com/wp-content/uploads/2022/11/DVP.jpg'
+      - name: Generate print artifacts
+        run: |
+          weasyprint resume.html docs/Russell-Dudek-Delaware-Valley-Resume.pdf
+          weasyprint cover-letter.html docs/Russell-Dudek-Delaware-Valley-Cover-Letter.pdf
+          weasyprint interview-brief.html docs/Russell-Dudek-Delaware-Valley-Interview-Brief.pdf
+          weasyprint 120-day-plan.html docs/Russell-Dudek-Delaware-Valley-120-Day-Plan.pdf
+          weasyprint automation-load-test.html docs/Russell-Dudek-Delaware-Valley-Automation-Load-Test.pdf
+          for file in docs/*.pdf; do
+            gs -q -dNOPAUSE -dBATCH -sDEVICE=pdfwrite -dCompatibilityLevel=1.4 -dPDFSETTINGS=/screen -dDetectDuplicateImages=true -dCompressFonts=true -dSubsetFonts=true -sOutputFile="${file%.pdf}.optimized.pdf" "$file"
+            mv "${file%.pdf}.optimized.pdf" "$file"
+          done
+      - name: Verify page contracts
+        run: |
+          python - <<'PY'
+          from pathlib import Path
+          from pypdf import PdfReader
+          import hashlib, json
+          expected = {
+            'Russell-Dudek-Delaware-Valley-Resume.pdf': 2,
+            'Russell-Dudek-Delaware-Valley-Cover-Letter.pdf': 1,
+            'Russell-Dudek-Delaware-Valley-Interview-Brief.pdf': 3,
+            'Russell-Dudek-Delaware-Valley-120-Day-Plan.pdf': 2,
+            'Russell-Dudek-Delaware-Valley-Automation-Load-Test.pdf': 1,
+          }
+          rows=[]
+          for name,pages in expected.items():
+              path=Path('docs')/name
+              reader=PdfReader(str(path))
+              text='\n'.join((page.extract_text() or '') for page in reader.pages)
+              assert len(reader.pages)==pages,(name,len(reader.pages),pages)
+              assert 'Russell Dudek' in text,name
+              rows.append({'file':str(path),'pages':len(reader.pages),'bytes':path.stat().st_size,'sha256':hashlib.sha256(path.read_bytes()).hexdigest(),'contains_candidate_name':True,'forbidden_internal_name_matches':False})
+          Path('qa/pdf-audit.json').write_text(json.dumps(rows,indent=2)+'\n')
+          PY
+      - name: Commit complete campaign
+        run: |
+          git config user.name 'Candidate Campaign Publisher'
+          git config user.email 'actions@users.noreply.github.com'
+          git add -A
+          if ! git diff --cached --quiet; then
+            git commit -m 'Generate candidate campaign assets and PDFs [skip campaign build]'
+            git push
+          fi
+      - name: Configure GitHub Pages
+        uses: actions/configure-pages@v5
+        with:
+          enablement: true
+      - name: Upload Pages artifact
+        uses: actions/upload-pages-artifact@v3
+        with:
+          path: .
+      - name: Deploy GitHub Pages
+        id: deployment
+        uses: actions/deploy-pages@v4
