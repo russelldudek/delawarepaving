@@ -1,4 +1,4 @@
-name: Build candidate campaign
+name: Build and publish candidate site
 
 on:
   push:
@@ -23,20 +23,87 @@ jobs:
       url: ${{ steps.deployment.outputs.page_url }}
     steps:
       - uses: actions/checkout@v4
-      - name: Assemble source and install document tooling
+
+      - name: Apply candidate-facing cleanup
         run: |
-          cat .build-payload/styles.part-* > styles.css
-          test "$(wc -c < styles.css)" -eq 25333
-          rm -rf .build-payload
+          python - <<'PY'
+          from pathlib import Path
+          import re
+
+          index = Path('index.html')
+          text = index.read_text()
+          text, count = re.subn(
+              r'<div class="employer-lockup">.*?</div></div><h1>',
+              '<h1>',
+              text,
+              count=1,
+          )
+          if count not in (0, 1):
+              raise SystemExit(f'Unexpected employer lockup count: {count}')
+          text = text.replace(
+              '<span><a href="sources.html">Sources &amp; assumptions</a> · <a href="https://github.com/russelldudek/delawarepaving">Public repository</a></span>',
+              '<span><a href="sources.html">Sources &amp; assumptions</a></span>',
+          )
+          index.write_text(text)
+
+          for name in [
+              'resume.html',
+              'cover-letter.html',
+              'interview-brief.html',
+              '120-day-plan.html',
+              'automation-load-test.html',
+          ]:
+              path = Path(name)
+              text = path.read_text()
+              text = text.replace(
+                  '<a class="button light" href="index.html">Candidate vision</a>',
+                  '<a class="button light" href="index.html">Site</a>',
+              )
+              text = text.replace(
+                  '<a href="https://russelldudek.github.io/delawarepaving/">Candidate vision</a> · <a href="https://github.com/russelldudek/delawarepaving">Campaign repository</a>',
+                  '<a href="https://russelldudek.github.io/delawarepaving/">russelldudek.github.io/delawarepaving</a>',
+              )
+              path.write_text(text)
+
+          sources = Path('sources.html')
+          text = sources.read_text()
+          text = text.replace(
+              '<span><a href="sources.html">Sources &amp; assumptions</a> · <a href="https://github.com/russelldudek/delawarepaving">Public repository</a></span>',
+              '<span><a href="index.html">russelldudek.github.io/delawarepaving</a></span>',
+          )
+          sources.write_text(text)
+
+          temporary = Path('.github/workflows/apply-public-surface-cleanup.yml')
+          if temporary.exists():
+              temporary.unlink()
+
+          forbidden = [
+              'Campaign repository',
+              'Public repository',
+              'github.com/russelldudek/delawarepaving',
+          ]
+          for path in Path('.').glob('*.html'):
+              page = path.read_text()
+              hits = [term for term in forbidden if term in page]
+              if hits:
+                  raise SystemExit(f'{path}: forbidden candidate-facing text remains: {hits}')
+          if 'employer-lockup' in index.read_text():
+              raise SystemExit('Duplicate homepage identity block remains')
+          if index.read_text().count('id="roller"') != 1:
+              raise SystemExit('Approved roller markup was disturbed')
+          PY
+
+      - name: Install document tooling
+        run: |
+          test -s styles.css
+          test -s assets/brand/dvp-logo.png
+          test -s assets/brand/dvp-truck.jpg
+          mkdir -p docs qa
           sudo apt-get update
           sudo apt-get install -y ghostscript
           python -m pip install --upgrade pip
           python -m pip install weasyprint pypdf
-      - name: Acquire official public brand assets
-        run: |
-          mkdir -p assets/brand docs qa
-          curl --fail --location --retry 3 --output assets/brand/dvp-logo.png 'https://www.delawarevalleypaving.com/wp-content/uploads/2024/02/DVP-Logo-tagline_1.png'
-          curl --fail --location --retry 3 --output assets/brand/dvp-truck.jpg 'https://www.delawarevalleypaving.com/wp-content/uploads/2022/11/DVP.jpg'
+
       - name: Generate print artifacts
         run: |
           weasyprint resume.html docs/Russell-Dudek-Delaware-Valley-Resume.pdf
@@ -45,49 +112,66 @@ jobs:
           weasyprint 120-day-plan.html docs/Russell-Dudek-Delaware-Valley-120-Day-Plan.pdf
           weasyprint automation-load-test.html docs/Russell-Dudek-Delaware-Valley-Automation-Load-Test.pdf
           for file in docs/*.pdf; do
-            gs -q -dNOPAUSE -dBATCH -sDEVICE=pdfwrite -dCompatibilityLevel=1.4 -dPDFSETTINGS=/screen -dDetectDuplicateImages=true -dCompressFonts=true -dSubsetFonts=true -sOutputFile="${file%.pdf}.optimized.pdf" "$file"
+            gs -q -dNOPAUSE -dBATCH -sDEVICE=pdfwrite -dCompatibilityLevel=1.4 \
+              -dPDFSETTINGS=/screen -dDetectDuplicateImages=true -dCompressFonts=true \
+              -dSubsetFonts=true -sOutputFile="${file%.pdf}.optimized.pdf" "$file"
             mv "${file%.pdf}.optimized.pdf" "$file"
           done
-      - name: Verify page contracts
+
+      - name: Verify page and confidentiality contracts
         run: |
           python - <<'PY'
           from pathlib import Path
           from pypdf import PdfReader
           import hashlib, json
+
           expected = {
-            'Russell-Dudek-Delaware-Valley-Resume.pdf': 2,
-            'Russell-Dudek-Delaware-Valley-Cover-Letter.pdf': 1,
-            'Russell-Dudek-Delaware-Valley-Interview-Brief.pdf': 3,
-            'Russell-Dudek-Delaware-Valley-120-Day-Plan.pdf': 2,
-            'Russell-Dudek-Delaware-Valley-Automation-Load-Test.pdf': 1,
+              'Russell-Dudek-Delaware-Valley-Resume.pdf': 2,
+              'Russell-Dudek-Delaware-Valley-Cover-Letter.pdf': 1,
+              'Russell-Dudek-Delaware-Valley-Interview-Brief.pdf': 3,
+              'Russell-Dudek-Delaware-Valley-120-Day-Plan.pdf': 2,
+              'Russell-Dudek-Delaware-Valley-Automation-Load-Test.pdf': 1,
           }
-          rows=[]
-          for name,pages in expected.items():
-              path=Path('docs')/name
-              reader=PdfReader(str(path))
-              text='\n'.join((page.extract_text() or '') for page in reader.pages)
-              assert len(reader.pages)==pages,(name,len(reader.pages),pages)
-              assert 'Russell Dudek' in text,name
-              rows.append({'file':str(path),'pages':len(reader.pages),'bytes':path.stat().st_size,'sha256':hashlib.sha256(path.read_bytes()).hexdigest(),'contains_candidate_name':True,'forbidden_internal_name_matches':False})
-          Path('qa/pdf-audit.json').write_text(json.dumps(rows,indent=2)+'\n')
+          rows = []
+          for name, pages in expected.items():
+              path = Path('docs') / name
+              reader = PdfReader(str(path))
+              text = '\n'.join((page.extract_text() or '') for page in reader.pages)
+              assert len(reader.pages) == pages, (name, len(reader.pages), pages)
+              assert 'Russell Dudek' in text, name
+              assert 'Campaign repository' not in text, name
+              assert 'github.com/russelldudek/delawarepaving' not in text, name
+              rows.append({
+                  'file': str(path),
+                  'pages': len(reader.pages),
+                  'bytes': path.stat().st_size,
+                  'sha256': hashlib.sha256(path.read_bytes()).hexdigest(),
+                  'contains_candidate_name': True,
+                  'campaign_repository_exposure': False,
+              })
+          Path('qa/pdf-audit.json').write_text(json.dumps(rows, indent=2) + '\n')
           PY
-      - name: Commit complete campaign
+
+      - name: Commit corrected source and documents
         run: |
           git config user.name 'Candidate Campaign Publisher'
           git config user.email 'actions@users.noreply.github.com'
           git add -A
           if ! git diff --cached --quiet; then
-            git commit -m 'Generate candidate campaign assets and PDFs [skip campaign build]'
+            git commit -m 'Simplify public identity and remove repository exposure [skip campaign build]'
             git push
           fi
+
       - name: Configure GitHub Pages
         uses: actions/configure-pages@v5
         with:
           enablement: true
+
       - name: Upload Pages artifact
         uses: actions/upload-pages-artifact@v3
         with:
           path: .
+
       - name: Deploy GitHub Pages
         id: deployment
         uses: actions/deploy-pages@v4
