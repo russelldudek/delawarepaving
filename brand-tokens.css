@@ -21,3 +21,46 @@
   --paper: #ffffff;
   --shadow: 0 28px 80px rgba(16, 19, 24, .16);
 }
+
+/* Candidate-facing cleanup: one employer identity and only the public site URL. */
+.employer-lockup { display: none !important; }
+
+.document-toolbar .doc-actions > a[href="index.html"] {
+  font-size: 0;
+}
+.document-toolbar .doc-actions > a[href="index.html"]::after {
+  content: "Site";
+  font-size: .82rem;
+}
+
+.contact-line {
+  font-size: 0 !important;
+}
+.contact-line::before {
+  content: "Pittsburgh, PA · Tampa Bay relocation planned · 412.287.8640 · russelldudek@gmail.com\A linkedin.com/in/russelldudek · ";
+  white-space: pre;
+  font-size: 8.5pt;
+  line-height: 1.45;
+}
+.contact-line > a {
+  display: none !important;
+}
+.contact-line > a[href="https://russelldudek.github.io/delawarepaving/"] {
+  display: inline !important;
+  font-size: 0 !important;
+}
+.contact-line > a[href="https://russelldudek.github.io/delawarepaving/"]::after {
+  content: "russelldudek.github.io/delawarepaving";
+  font-size: 8.5pt;
+}
+
+.footer-inner > span:last-child {
+  font-size: 0;
+}
+.footer-inner > span:last-child a[href="sources.html"],
+.footer-inner > span:last-child a[href="index.html"] {
+  font-size: .84rem;
+}
+.footer-inner > span:last-child a[href*="github.com/russelldudek/delawarepaving"] {
+  display: none !important;
+}
